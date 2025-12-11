@@ -1,7 +1,7 @@
 export const translations = {
   en: {
     heroTitle: "Explore Your",
-    heroTitleHighlight: "Menopause Journey",
+    heroTitleHighlight: "Fitness Journey",
     heroSubtitle: "Select your wellness themes below to discover resources and insights tailored specifically to your needs.",
     continue: "Continue",
     back: "Back to Themes",
@@ -11,7 +11,7 @@ export const translations = {
     selected: "Selected",
     select: "Select",
     yourVoiceMatters: "Your Voice Matters",
-    privacyText: "You can remain anonymous or share your contact details — it's entirely up to you. Your voice and perspective help shape better support and understanding for women navigating post-menopause wellness and graceful aging.",
+    privacyText: "You can remain anonymous or share your contact details — it's entirely up to you. Your voice and perspective help shape better support and understanding for women navigating their fitness journey and healthy aging.",
     thanks: "💗 A huge thanks for being part of this journey. Together, let's redefine what it means to age — gracefully, joyfully, and on your own terms.",
     personalDetails: "Personal Details",
     name: "Name",
@@ -29,7 +29,7 @@ export const translations = {
   },
   fr: {
     heroTitle: "Explorez Votre",
-    heroTitleHighlight: "Parcours de Ménopause",
+    heroTitleHighlight: "Parcours de Fitness",
     heroSubtitle: "Sélectionnez vos thèmes de bien-être ci-dessous pour découvrir des ressources et des conseils adaptés spécifiquement à vos besoins.",
     continue: "Continuer",
     back: "Retour aux Thèmes",
@@ -39,7 +39,7 @@ export const translations = {
     selected: "Sélectionné",
     select: "Sélectionner",
     yourVoiceMatters: "Votre Voix Compte",
-    privacyText: "Vous pouvez rester anonyme ou partager vos coordonnées — c'est entièrement à vous de décider. Votre voix et votre perspective aident à façonner un meilleur soutien et une meilleure compréhension pour les femmes traversant le bien-être post-ménopause.",
+    privacyText: "Vous pouvez rester anonyme ou partager vos coordonnées — c'est entièrement à vous de décider. Votre voix et votre perspective aident à façonner un meilleur soutien et une meilleure compréhension pour les femmes traversant leur parcours de fitness.",
     thanks: "💗 Un grand merci de faire partie de ce voyage. Ensemble, redéfinissons ce que signifie vieillir — avec grâce, joie et selon vos propres termes.",
     personalDetails: "Détails Personnels",
     name: "Nom",
