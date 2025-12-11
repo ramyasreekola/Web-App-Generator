@@ -1,0 +1,139 @@
+You are a web-app generator. Build a small, production-ready multi-step UI for a menopause wellness experience. The website should let a visitor choose one or more wellness “themes” and then complete a short form that references the selected theme(s). Produce fully functional code (or a clear component-by-component implementation plan) that meets the requirements below.
+
+1) High-level behavior
+- Single-page flow with two main screens:
+  1. Theme selection screen (initial): hero + language toggle + theme selector grid + Continue button.
+  2. Form screen: selected theme titles shown + static Title & Description + personal fields + age group + one extra radio choice + consent checkbox + data protection notice + Back and Submit buttons.
+- Theme selection screen must support selecting one or multiple themes (configurable); Continue is disabled until at least one theme is selected. Clicking Continue goes to the Form screen with the selected theme(s) pre-filled.
+- Each theme has a “Read more” link that opens a modal/popup showing title, large image, and full description. Modal must be keyboard accessible and trap focus; close on Esc.
+- Language toggle in the top-right switches the UI text and direction (LTR/RTL if appropriate). Persist chosen language.
+- Theme selection persists across navigation (e.g., localStorage or state). Back from the form returns to theme selection and preserves previous choices.
+
+2) Visual & structural elements
+- Header (top-right): Language toggle button (icon + two-letter code). Accessible label.
+- Hero (top of page): large Title and short description. Example: "Explore Your Menopause Journey" with subtitle "Select your wellness themes and discover resources tailored to you."
+- Theme selector grid: 6 theme cards displayed responsively (3-col desktop, 2-col tablet, 1-col mobile). Each card includes:
+  - thumbnail image (with alt text)
+  - title
+  - short description (1–2 lines)
+  - a radio or checkbox control for selection (single-select or multi-select behavior should be configurable)
+  - “Read more” link/button that opens the modal
+  - visual selected state (outline, checkmark, aria-checked)
+- Continue button centered below the grid.
+
+3) Modal / Read more behavior
+- Show full theme details: title, large image, and full description (HTML allowed).
+- Focus is trapped inside modal while open; return focus to triggering element when closed.
+- Close via close button, background click, or Esc.
+- Modal content should be scrollable if long; include ARIA roles and accessible labeling.
+
+4) Form screen specifics
+- Static Title (non-editable): "Your Voice Matters"  
+- Static Description (non-editable): "You can remain anonymous or share your contact details — it's entirely up to you. Your voice and perspective help shape better support and understanding for women navigating post-menopause wellness and graceful aging. 💗 A huge thanks for being part of this journey. Together, let's redefine what it means to age — gracefully, joyfully, and on your own terms."
+- Header area showing the selected theme(s) titles (and optional small thumbnail). If multiple, list them.
+- Optional Title & Description fields for reference (optional, not editable by the user).
+- Personal section:
+  - Name (text) — required
+  - Email (email input) — required; validate format
+- Age group:
+  - Present 5 or 6 radio options (35–44, 45–54, 55–64, 65+)
+  - Exactly one must be selected
+- Additional choice:
+  - One radio group labeled "Preferred contact method" with options Email / Phone
+- Theme details summary: show chosen theme names (and small thumbnails). If multi-select, allow user to uncheck a previously selected theme (optional)
+- Consent checkbox:
+  - Text: “I consent to receive personalized wellness content. I have read the data protection notice.”
+  - Required to enable Submit
+- Data protection notice text (short paragraph) with link to full policy.
+- Buttons: Back (returns to theme selection, preserving form state) and Submit.
+
+5) Accessibility, responsiveness, and UX
+- All interactive elements reachable by keyboard, with visible focus styles.
+- Use semantic HTML (header, main, form, fieldset, legend, button).
+- Provide aria-labels and roles for dynamic elements (modal, language toggle, theme cards).
+- Ensure color contrast meets WCAG AA.
+- Responsive layout as described above.
+- Graceful fallback: if JS disabled, show a progressive, usable static list and standard form submission.
+
+6) Data handling, validation, and submission
+- Validate required fields client-side and show inline error messages.
+- On submit, send JSON payload to a configurable POST endpoint:
+{
+  title?: string,
+  description?: string,
+  personal: { name: string, email: string },
+  ageGroup: string,
+  extraChoice: string,
+  themes: [{ id: string, title: string }],
+  consent: true,
+  language: "en"
+}
+- Show success confirmation on successful submission and a helpful error message on failure.
+- Include CSRF/token placeholder and an example fetch call. Log payload to console in dev.
+
+7) Theme data example (JSON with descriptions and suggested images)
+[
+  {
+    "id": "theme-1",
+    "title": "Vital Living & Longevity",
+    "short": "Boost energy and maintain vitality during menopause.",
+    "image": "vital-thumb.jpg",
+    "imageLarge": "vital-large.jpg",
+    "full": "Learn strategies for nutrition, exercise, and healthy habits to increase energy and longevity during menopause.",
+    "imagePrompt": "Middle-aged woman practicing yoga outdoors in sunlight, lush green park, wellness and vitality mood"
+  },
+  {
+    "id": "theme-2",
+    "title": "The Inner Journey & Life Transitions",
+    "short": "Reflect, grow, and embrace new life stages.",
+    "image": "inner-thumb.jpg",
+    "imageLarge": "inner-large.jpg",
+    "full": "Explore mindfulness, self-reflection, and personal growth to navigate the emotional and mental transitions of menopause.",
+    "imagePrompt": "Woman meditating indoors with soft natural light, cozy home, calm and introspective mood"
+  },
+  {
+    "id": "theme-3",
+    "title": "Relationships & Belonging",
+    "short": "Strengthen connections with family and friends.",
+    "image": "relationships-thumb.jpg",
+    "imageLarge": "relationships-large.jpg",
+    "full": "Build meaningful social connections and nurture relationships for emotional support during menopause.",
+    "imagePrompt": "Group of diverse middle-aged women laughing and chatting over coffee, warm friendly atmosphere"
+  },
+  {
+    "id": "theme-4",
+    "title": "Resilience & Daily Mastery",
+    "short": "Manage routines and overcome challenges daily.",
+    "image": "resilience-thumb.jpg",
+    "imageLarge": "resilience-large.jpg",
+    "full": "Develop coping strategies, time management, and routines that enhance resilience and daily mastery during menopause.",
+    "imagePrompt": "Focused woman planning her day at a desk with notebooks, organized home office, calm and productive energy"
+  },
+  {
+    "id": "theme-5",
+    "title": "Safety and Security",
+    "short": "Feel secure emotionally, financially, and personally.",
+    "image": "safety-thumb.jpg",
+    "imageLarge": "safety-large.jpg",
+    "full": "Learn how to create a safe and secure environment for yourself, including financial and emotional security during menopause.",
+    "imagePrompt": "Confident middle-aged woman standing at home, natural light, feeling safe and empowered"
+  },
+  {
+    "id": "theme-6",
+    "title": "Legacy, Mortality & Future Planning",
+    "short": "Reflect on purpose and plan for the future.",
+    "image": "legacy-thumb.jpg",
+    "imageLarge": "legacy-large.jpg",
+    "full": "Engage in reflective exercises and planning to consider your legacy and meaningful contributions for the future.",
+    "imagePrompt": "Thoughtful woman journaling by a window with sunlight, contemplative mood, soft warm light"
+  }
+]
+
+8) Deliverables
+- React (TypeScript) component set: ThemeSelector, ThemeCard, Modal, ThemeForm
+- Full Tailwind CSS styling for responsive design and accessibility
+- Example theme JSON included
+- README with instructions to run locally, configuration options, and API endpoint placeholder
+- Include generated images using imagePrompt for each theme
+
+Goal: Produce a fully usable, accessible, responsive menopause wellness theme-selection + form flow website, integrating interactive UI, modals, theme selection, form validation, static form title & description, and visually engaging imagery.
