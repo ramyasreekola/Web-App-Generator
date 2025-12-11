@@ -4,9 +4,11 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Theme } from "@/lib/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { X } from "lucide-react";
 
 interface ThemeModalProps {
   theme: Theme | null;
@@ -19,7 +21,12 @@ export function ThemeModal({ theme, isOpen, onClose }: ThemeModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl p-0 overflow-hidden gap-0 border-none sm:rounded-2xl">
+      <DialogContent className="max-w-2xl p-0 overflow-hidden gap-0 border-none sm:rounded-2xl [&>button:last-child]:hidden">
+        <DialogClose className="absolute right-4 top-4 rounded-full bg-black/20 hover:bg-black/40 text-white p-2 backdrop-blur-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 z-50">
+          <X className="h-5 w-5" />
+          <span className="sr-only">Close</span>
+        </DialogClose>
+        
         <div className="relative h-48 sm:h-64 w-full">
           <img
             src={theme.imageLarge}
