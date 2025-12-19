@@ -64,7 +64,7 @@ export default function FormScreen() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-    
+
     const payload: FormData = {
       personal: {
         name: values.name,
@@ -79,21 +79,68 @@ export default function FormScreen() {
 
     console.log("Submitting payload:", payload);
 
-    // Simulate API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast({
-        title: t.successTitle,
-        description: t.successDesc,
-        variant: "default",
+      // Get API key from environment
+      const apiKey = import.meta.env.VITE_STATICFORMS_API_KEY;
+console.log(apiKey)
+      // Check if API key is loaded
+      if (!apiKey) {
+        throw new Error("API key not configured. Please check your .env file and restart the dev server.");
+      }
+
+      console.log("API Key loaded:", apiKey ? "Yes" : "No");
+
+      // Submit to StaticForms.xyz
+      const response = await fetch("https://api.staticforms.xyz/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          accessKey: apiKey,
+          subject: `New Fitness Journey Form - ${payload.personal.name}`,
+          name: payload.personal.name,
+          email: payload.personal.email,
+          replyTo: payload.personal.email,
+          message: `
+Age Group: ${payload.ageGroup}
+Preferred Contact Method: ${payload.extraChoice}
+Language: ${payload.language}
+
+Selected Themes:
+${payload.themes.map(t => `- ${t.title}`).join('\n')}
+
+Consent: ${payload.consent ? 'Yes' : 'No'}
+Submitted: ${new Date().toLocaleString()}
+          `.trim(),
+          // Optional: Add honeypot field for spam protection
+          honeypot: "",
+        }),
       });
-      
-      // Could redirect to a success page here
+
+      if (!response.ok) {
+        throw new Error(`Form submission failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: t.successTitle,
+          description: t.successDesc,
+          variant: "default",
+        });
+
+        // Optionally reset form or redirect
+        // form.reset();
+      } else {
+        throw new Error(result.message || "Submission failed");
+      }
     } catch (error) {
+      console.error("Form submission error:", error);
       toast({
         title: "Error",
-        description: "Something went wrong. Please try again.",
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -284,6 +331,11 @@ export default function FormScreen() {
                           </FormItem>
                         )}
                       />
+                      <div className="border-t border-secondary/30 pt-3 mt-3">
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {t.dataProtection}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="flex justify-end pt-4">
