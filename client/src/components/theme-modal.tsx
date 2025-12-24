@@ -27,11 +27,11 @@ export function ThemeModal({ theme, isOpen, onClose }: ThemeModalProps) {
           <span className="sr-only">Close</span>
         </DialogClose>
         
-        <div className="relative h-48 sm:h-64 w-full">
+        <div className="relative h-48 sm:h-64 w-full bg-gray-100">
           <img
             src={theme.imageLarge}
             alt=""
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
             <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white shadow-sm">

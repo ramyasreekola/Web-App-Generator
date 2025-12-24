@@ -41,8 +41,8 @@ export default function ThemeSelection() {
         </section>
 
         {/* Study Info Box */}
-        <Card className="mb-12 p-6 sm:p-8 bg-primary/5 border-primary/20 shadow-md animate-in fade-in slide-in-from-bottom-3 duration-700" style={{ animationDelay: "100ms" }}>
-          <div className="space-y-3">
+        <Card className="mb-12 p-6 sm:p-8 bg-primary/5 border-primary/20 shadow-md animate-in fade-in slide-in-from-bottom-3 duration-700 max-w-4xl mx-auto" style={{ animationDelay: "100ms" }}>
+          <div className="space-y-3 text-center">
             <p className="text-xs font-semibold text-primary tracking-widest uppercase">{t.browseLabel}</p>
             <h2 className="text-2xl sm:text-3xl font-serif font-bold text-foreground">{t.studyTitle}</h2>
             <p className="text-muted-foreground leading-relaxed">{t.studySubtitle}</p>
