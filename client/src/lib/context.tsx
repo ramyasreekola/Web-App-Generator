@@ -10,8 +10,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [language, setLanguage] = useState<"en" | "fr">(() => {
-    return (localStorage.getItem("language") as "en" | "fr") || "en";
+  const [language, setLanguage] = useState<"en" | "sv">(() => {
+    return (localStorage.getItem("language") as "en" | "sv") || "en";
+  });
+
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem("darkMode");
+    return saved ? JSON.parse(saved) : false;
   });
 
   // Persist to localStorage
@@ -21,9 +26,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem("language", language);
-    // In a real app, this would handle i18n/RTL logic
     document.documentElement.lang = language;
   }, [language]);
+
+  useEffect(() => {
+    localStorage.setItem("darkMode", JSON.stringify(darkMode));
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
 
   const toggleTheme = (id: string) => {
     setSelectedThemeIds((prev) => {
@@ -35,6 +48,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const toggleDarkMode = () => {
+    setDarkMode((prev) => !prev);
+  };
+
   const resetThemes = () => setSelectedThemeIds([]);
 
   return (
@@ -42,8 +59,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       value={{
         selectedThemeIds,
         language,
+        darkMode,
         toggleTheme,
         setLanguage,
+        toggleDarkMode,
         resetThemes,
       }}
     >

@@ -13,16 +13,20 @@ export interface FormData {
     email: string;
   };
   ageGroup: string;
+  timeSinceMenopause: string;
   extraChoice: string;
   themes: { id: string; title: string }[];
+  themePriorities?: { themeId: string; priority: number }[];
   consent: boolean;
-  language: "en" | "fr"; // Simplified for now
+  language: "en" | "sv";
 }
 
 export interface AppState {
   selectedThemeIds: string[];
-  language: "en" | "fr";
+  language: "en" | "sv";
+  darkMode: boolean;
   toggleTheme: (id: string) => void;
-  setLanguage: (lang: "en" | "fr") => void;
+  setLanguage: (lang: "en" | "sv") => void;
+  toggleDarkMode: () => void;
   resetThemes: () => void;
 }

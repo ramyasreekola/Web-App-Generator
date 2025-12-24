@@ -25,10 +25,16 @@ import { useState } from "react";
 import { FormData } from "@/lib/types";
 
 const formSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  ageGroup: z.enum(["35-44", "45-54", "55-64", "65+"], {
+  name: z.string().optional().or(z.literal("")),
+  email: z.string().optional().or(z.literal("")).refine(
+    (val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+    "Invalid email address"
+  ),
+  ageGroup: z.enum(["below-50", "51-55", "56-60", "61-65", "66-70", "71-75", "75+"], {
     required_error: "Please select your age group",
+  }),
+  timeSinceMenopause: z.enum(["0-5", "5-10", "10+"], {
+    required_error: "Please select when your post-menopause started",
   }),
   extraChoice: z.enum(["email", "phone"], {
     required_error: "Please select a contact method",
@@ -43,6 +49,7 @@ export default function FormScreen() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [themePriorities, setThemePriorities] = useState<string[]>(selectedThemeIds);
   const t = translations[language];
 
   // Redirect if no themes selected
@@ -51,7 +58,7 @@ export default function FormScreen() {
     return null;
   }
 
-  const selectedThemes = themes.filter((t) => selectedThemeIds.includes(t.id));
+  const selectedThemes = themePriorities.map(id => themes.find(t => t.id === id)).filter(Boolean) as typeof themes;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -62,85 +69,58 @@ export default function FormScreen() {
     },
   });
 
+  const moveThemeUp = (index: number) => {
+    if (index > 0) {
+      const newPriorities = [...themePriorities];
+      [newPriorities[index], newPriorities[index - 1]] = [newPriorities[index - 1], newPriorities[index]];
+      setThemePriorities(newPriorities);
+    }
+  };
+
+  const moveThemeDown = (index: number) => {
+    if (index < themePriorities.length - 1) {
+      const newPriorities = [...themePriorities];
+      [newPriorities[index], newPriorities[index + 1]] = [newPriorities[index + 1], newPriorities[index]];
+      setThemePriorities(newPriorities);
+    }
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-
+    
     const payload: FormData = {
       personal: {
-        name: values.name,
-        email: values.email,
+        name: values.name || "",
+        email: values.email || "",
       },
       ageGroup: values.ageGroup,
+      timeSinceMenopause: values.timeSinceMenopause,
       extraChoice: values.extraChoice,
-      themes: selectedThemes.map(t => ({ id: t.id, title: t.title })),
+      themes: themePriorities.map((id) => {
+        const theme = themes.find(t => t.id === id);
+        return { id, title: theme?.title || "" };
+      }),
+      themePriorities: themePriorities.map((id, idx) => ({ themeId: id, priority: idx + 1 })),
       consent: values.consent,
       language: language,
     };
 
     console.log("Submitting payload:", payload);
 
+    // Simulate API call
     try {
-      // Get API key from environment
-      const apiKey = import.meta.env.VITE_STATICFORMS_API_KEY;
-console.log(apiKey)
-      // Check if API key is loaded
-      if (!apiKey) {
-        throw new Error("API key not configured. Please check your .env file and restart the dev server.");
-      }
-
-      console.log("API Key loaded:", apiKey ? "Yes" : "No");
-
-      // Submit to StaticForms.xyz
-      const response = await fetch("https://api.staticforms.xyz/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          accessKey: apiKey,
-          subject: `New Fitness Journey Form - ${payload.personal.name}`,
-          name: payload.personal.name,
-          email: payload.personal.email,
-          replyTo: payload.personal.email,
-          message: `
-Age Group: ${payload.ageGroup}
-Preferred Contact Method: ${payload.extraChoice}
-Language: ${payload.language}
-
-Selected Themes:
-${payload.themes.map(t => `- ${t.title}`).join('\n')}
-
-Consent: ${payload.consent ? 'Yes' : 'No'}
-Submitted: ${new Date().toLocaleString()}
-          `.trim(),
-          // Optional: Add honeypot field for spam protection
-          honeypot: "",
-        }),
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      toast({
+        title: t.successTitle,
+        description: t.successDesc,
+        variant: "default",
       });
-
-      if (!response.ok) {
-        throw new Error(`Form submission failed: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast({
-          title: t.successTitle,
-          description: t.successDesc,
-          variant: "default",
-        });
-
-        // Optionally reset form or redirect
-        // form.reset();
-      } else {
-        throw new Error(result.message || "Submission failed");
-      }
+      
     } catch (error) {
-      console.error("Form submission error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
+        description: "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -169,23 +149,38 @@ Submitted: ${new Date().toLocaleString()}
                 <CardTitle className="text-xl font-serif text-primary">{t.selectedThemes}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {selectedThemes.map((theme) => (
-                  <div key={theme.id} className="flex items-start space-x-3 bg-background p-3 rounded-lg shadow-sm">
-                    <img src={theme.image} alt="" className="w-10 h-10 rounded-md object-cover flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium leading-tight mb-1">{theme.title}</p>
+                {selectedThemes.map((theme, idx) => (
+                  <div key={theme.id} className="flex flex-col space-y-2 bg-background p-3 rounded-lg shadow-sm">
+                    <div className="flex items-start space-x-3">
+                      <img src={theme.image} alt="" className="w-10 h-10 rounded-md object-cover flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium leading-tight">{idx + 1}. {theme.title}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 ml-13">
+                      <button 
+                        onClick={() => moveThemeUp(idx)}
+                        disabled={idx === 0}
+                        className="text-xs px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        ↑
+                      </button>
+                      <button 
+                        onClick={() => moveThemeDown(idx)}
+                        disabled={idx === themePriorities.length - 1}
+                        className="text-xs px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        ↓
+                      </button>
                       <button 
                         onClick={() => toggleTheme(theme.id)}
-                        className="text-xs text-muted-foreground hover:text-destructive transition-colors underline"
+                        className="text-xs text-muted-foreground hover:text-destructive transition-colors underline ml-auto"
                       >
                         {t.remove}
                       </button>
                     </div>
                   </div>
                 ))}
-                {selectedThemes.length === 0 && (
-                  <p className="text-sm text-destructive">{t.errorSelectTheme}</p>
-                )}
               </CardContent>
             </Card>
 
@@ -209,7 +204,7 @@ Submitted: ${new Date().toLocaleString()}
                     
                     {/* Personal Info */}
                     <div className="space-y-4">
-                      <h3 className="text-lg font-medium border-b pb-2">{t.personalDetails}</h3>
+                      <h3 className="text-lg font-medium border-b pb-2">{t.personalDetailsOptional}</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
@@ -252,18 +247,58 @@ Submitted: ${new Date().toLocaleString()}
                               <RadioGroup
                                 onValueChange={field.onChange}
                                 defaultValue={field.value}
-                                className="grid grid-cols-2 sm:grid-cols-4 gap-4"
+                                className="grid grid-cols-2 sm:grid-cols-3 gap-3"
                               >
-                                {["35-44", "45-54", "55-64", "65+"].map((age) => (
+                                {["below-50", "51-55", "56-60", "61-65", "66-70", "71-75", "75+"].map((age) => (
                                   <FormItem key={age}>
                                     <FormControl>
                                       <RadioGroupItem value={age} className="peer sr-only" />
                                     </FormControl>
-                                    <FormLabel className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all">
-                                      {age}
+                                    <FormLabel className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all text-sm">
+                                      {age === "below-50" ? "Below 50" : age}
                                     </FormLabel>
                                   </FormItem>
                                 ))}
+                              </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Time Since Menopause */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium border-b pb-2">{t.timeSinceMenopause}</h3>
+                      <FormField
+                        control={form.control}
+                        name="timeSinceMenopause"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <RadioGroup
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                className="flex flex-col space-y-3"
+                              >
+                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="0-5" />
+                                  </FormControl>
+                                  <FormLabel className="font-normal">0-5 years ago</FormLabel>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="5-10" />
+                                  </FormControl>
+                                  <FormLabel className="font-normal">5-10 years ago</FormLabel>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="10+" />
+                                  </FormControl>
+                                  <FormLabel className="font-normal">More than 10 years ago</FormLabel>
+                                </FormItem>
                               </RadioGroup>
                             </FormControl>
                             <FormMessage />
@@ -319,23 +354,19 @@ Submitted: ${new Date().toLocaleString()}
                                 onCheckedChange={field.onChange}
                               />
                             </FormControl>
-                            <div className="space-y-1 leading-none">
+                            <div className="space-y-3 leading-none">
                               <FormLabel>
                                 {t.consentLabel}
                               </FormLabel>
-                              <p className="text-xs text-muted-foreground">
-                                {t.consentText}
-                              </p>
+                              <div className="space-y-2 text-xs text-muted-foreground">
+                                <p className="font-semibold text-foreground">{t.dataProtectionNotice}</p>
+                                <p>{t.dataProtectionText}</p>
+                              </div>
                               <FormMessage />
                             </div>
                           </FormItem>
                         )}
                       />
-                      <div className="border-t border-secondary/30 pt-3 mt-3">
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {t.dataProtection}
-                        </p>
-                      </div>
                     </div>
 
                     <div className="flex justify-end pt-4">

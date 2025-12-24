@@ -1,0 +1,117 @@
+Change Explore Your Fitness Journey
+To Are you a woman post-menopause?
+
+Change Select your wellness themes below to discover resources and insights tailored specifically to your needs.
+
+ To 
+We'd love to listen to your story and learn from your experience. We are on a mission to make Graceful Aging a reality for every woman, and this is a safe, welcoming space for you to explore what truly matters to you in this stage of life — from health and wellbeing to purpose, relationships, and self-discovery.
+🌿 This short reflection takes just 3–5 minutes. Simply browse the theme cards below, select what resonates with you (one, several, or all), and share a few thoughts about your values and dreams for the future. Click any card to preview its meaning first.
+
+Add above the theme in a box, its a text non editable
+Label :BROWSE THEME OPTIONS
+Title:Your Voice, Our Vision: A Study on Healthy AgingTextJoin our study to share your valuable insights and help us create projects that truly matter.
+
+Update themes content : 
+1.
+Title: Vital Living & Longevity
+Text below it :  A lifestyle of healthy habits that sustain energy, joy, and long life
+Under read more button : Subthemes:
+* Movement as Medicine – gardening, cleaning, daily chores, gentle fitness  
+* Food and Nourishment – plant-based eating, 80% full, anti-inflammatory foods  
+* Alcohol/Softdrinks – nuanced discussion of moderation and wellbeing
+* Downshifting – slowing down, simplifying life, reducing stress
+
+2.
+ Title : The Inner Journey & Life Transitions
+Text: Emotional, psychological, and spiritual shifts that shape us through life.
+Text under read more button means one we click on read more:
+Subthemes:
+* Hormonal Changes and Menopause – pre/meno/post menopause, physical/mental changes  
+* Loss & Rediscovery of Identity – self-esteem, purpose, acceptance, empty nesters  
+* Personal Boundaries & Limits – managing influence, setting limits, saying yes/no
+
+* Soul, Purpose & Longing – meaning-making, inner beauty, desires without boundaries
+* Desires in life – what excites you, what keeps you awake at night
+
+3.
+
+Title : Relationships & Belonging
+Text  The changing role of relationships and community throughout life.
+Text under read more button means one we click on read more:
+
+Subthemes:
+* Family & Friends – friends as family, extended family, kids, partner  
+* Tribe & Community – social circle, right tribe, belonging
+
+* Sisterhood – shared experience, emotional support, women supporting women  
+* Changes in Relationships – changes with self, friends, partner, work
+* Loneliness & Connection – Internally, externally
+
+4. 
+
+Title : Resilience & Daily Master
+
+Text : Practical skills to navigate daily life with intention and confidence.
+Text under read more button means one we click on read more:
+
+Subthemes:
+* Financial Health – planning, independence, navigating changes  
+* Work & Purpose – meaning of work, shifting values, staying engaged  
+* Managing Daily Life – routines, wellbeing now and in the future
+* Managing Change, Embracing Limits – adapting to change, mindset
+
+5.
+Title: Safety and Security
+Text: Creating safety that nurtures trust, freedom, and peace of mind.
+Text under read more button means one we click on read more:
+Subthemes:
+* Emotional Safety & Vulnerability (especially for topics like illness, menopause, end-of-life)
+* Physical Safety –walking alone outside/in darkness , doing daily chores in the society (going the bank/post/shopping), self defence, unexpected visitors
+* IT Security –frauds, whom and what to trust, spam, knowledge
+
+
+6. 
+Title: Legacy, Mortality & Future Planning
+Text : Creating peace of mind through intentional choices for the future.
+
+Text under read more button means one we click on read more:
+Subthemes:
+* End-of-Life Desires – funeral wishes, music, setting, atmosphere  
+* Footprints & Legacy – how you want to be remembered  
+* Care & Contingency Plans – illness, accidents, caregiving preferences
+* Legal & Ethical Considerations – will, organ donation, body disposition
+
+
+- Also add language toggle to Swedish instead of French
+- Make the order in which user select theme , they should be submitted on form in that order only. 
+- Also give possible to arrange priority on form also instead of coming back to select again 
+
+- Also on form Do below changes:
+- Add above personal info(Optional) name and email address 
+- Then under Age section add below options as well
+- Below 50
+- 51-55
+- 56-60
+- 61-65
+- 66-70
+- 71-75
+- 75+
+- Add one more field radio button named ‘Time Since Post-Menopause Started’ with options 
+- 1. 0-5 years ago
+- 5-10 years ago
+- More than 10 years ago
+Also add check box for consent 
+Update consent text : I am consenting to be contacted for further research opportunities.
+And add below 
+Data Protection Notice
+We are fully GDPR compliant. All data collected in this study will be stored securely and deleted after the study concludes, unless you have provided explicit consent to be contacted for further research.
+
+
+Update above changes and will be great if you can also dd one more feature of toggle dark and light theme 
+
+
+
+
+
+
+
