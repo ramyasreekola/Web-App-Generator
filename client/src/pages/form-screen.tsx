@@ -87,7 +87,7 @@ export default function FormScreen() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-    
+
     const payload: FormData = {
       personal: {
         name: values.name || "",
@@ -107,20 +107,76 @@ export default function FormScreen() {
 
     console.log("Submitting payload:", payload);
 
-    // Simulate API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast({
-        title: t.successTitle,
-        description: t.successDesc,
-        variant: "default",
+      // Get API key from environment
+      const apiKey = import.meta.env.VITE_STATICFORMS_API_KEY;
+
+      // Check if API key is loaded
+      if (!apiKey) {
+        throw new Error("API key not configured. Please check your .env file and restart the dev server.");
+      }
+
+      console.log("API Key loaded:", apiKey ? "Yes" : "No");
+
+      // Format theme priorities for email
+      const prioritizedThemesList = themePriorities.map((id, idx) => {
+        const theme = themes.find(t => t.id === id);
+        return `${idx + 1}. ${theme?.title || id}`;
+      }).join('\n');
+
+      // Submit to StaticForms.xyz
+      const response = await fetch("https://api.staticforms.xyz/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          accessKey: apiKey,
+          subject: `New Post-Menopause Study Submission - ${payload.personal.name || 'Anonymous'}`,
+          name: payload.personal.name || "Anonymous",
+          email: payload.personal.email || "no-email-provided@anonymous.com",
+          replyTo: payload.personal.email || undefined,
+          message: `
+Age Group: ${payload.ageGroup}
+Time Since Menopause: ${payload.timeSinceMenopause}
+Preferred Contact Method: ${payload.extraChoice}
+Language: ${payload.language}
+Contact Name: ${payload.personal.name || 'Not provided'}
+Contact Email: ${payload.personal.email || 'Not provided'}
+
+Selected Themes (Prioritized):
+${prioritizedThemesList}
+
+Consent to Contact: ${payload.consent ? 'Yes' : 'No'}
+
+Submitted: ${new Date().toLocaleString()}
+          `.trim(),
+          honeypot: "",
+        }),
       });
-      
+
+      if (!response.ok) {
+        throw new Error(`Form submission failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: t.successTitle,
+          description: t.successDesc,
+          variant: "default",
+        });
+        // Optionally reset form or redirect
+        // form.reset();
+      } else {
+        throw new Error(result.message || "Submission failed");
+      }
     } catch (error) {
+      console.error("Form submission error:", error);
       toast({
         title: "Error",
-        description: "Something went wrong. Please try again.",
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
