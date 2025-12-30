@@ -65,6 +65,9 @@ export default function FormScreen() {
     defaultValues: {
       name: "",
       email: "",
+      ageGroup: undefined,
+      timeSinceMenopause: undefined,
+      extraChoice: undefined,
       consent: false,
     },
   });
@@ -86,6 +89,10 @@ export default function FormScreen() {
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log("=== FORM SUBMISSION STARTED ===");
+    console.log("Form values:", values);
+    console.log("Form errors:", form.formState.errors);
+
     setIsSubmitting(true);
 
     const payload: FormData = {
