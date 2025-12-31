@@ -1,4 +1,5 @@
 import { useLocation } from "wouter";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -26,18 +27,22 @@ import { FormData } from "@/lib/types";
 
 const formSchema = z.object({
   name: z.string().optional().or(z.literal("")),
-  email: z.string().optional().or(z.literal("")).refine(
-    (val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
-    "Invalid email address"
+  email: z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .refine(
+      (val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+      "Invalid email address"
+    ),
+  ageGroup: z.enum(
+    ["below-50", "51-55", "56-60", "61-65", "66-70", "71-75", "75+"],
+    {
+      required_error: "Please select your age group",
+    }
   ),
-  ageGroup: z.enum(["below-50", "51-55", "56-60", "61-65", "66-70", "71-75", "75+"], {
-    required_error: "Please select your age group",
-  }),
   timeSinceMenopause: z.enum(["0-5", "5-10", "10+"], {
     required_error: "Please select when your post-menopause started",
-  }),
-  extraChoice: z.enum(["email", "phone"], {
-    required_error: "Please select a contact method",
   }),
   consent: z.boolean().refine((val) => val === true, {
     message: "You must consent to continue",
@@ -49,16 +54,15 @@ export default function FormScreen() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [themePriorities, setThemePriorities] = useState<string[]>(selectedThemeIds);
+  const [themePriorities, setThemePriorities] =
+    useState<string[]>(selectedThemeIds);
   const t = translations[language];
 
   // Redirect if no themes selected
-  if (selectedThemeIds.length === 0) {
-    setLocation("/");
-    return null;
-  }
 
-  const selectedThemes = themePriorities.map(id => themes.find(t => t.id === id)).filter(Boolean) as typeof themes;
+  const selectedThemes = themePriorities
+    .map((id) => themes.find((t) => t.id === id))
+    .filter(Boolean) as typeof themes;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -67,15 +71,32 @@ export default function FormScreen() {
       email: "",
       ageGroup: undefined,
       timeSinceMenopause: undefined,
-      extraChoice: undefined,
       consent: false,
     },
   });
+  useEffect(() => {
+    if (selectedThemeIds.length === 0) setLocation("/");
+  }, [selectedThemeIds.length, setLocation]);
 
+
+  useEffect(() => {
+    setThemePriorities((prev) => {
+      // remove items that were removed in context
+      const next = prev.filter((id) => selectedThemeIds.includes(id));
+      // append any newly selected themes that aren't in the priority list yet
+      for (const id of selectedThemeIds) {
+        if (!next.includes(id)) next.push(id);
+      }
+      return next;
+    });
+  }, [selectedThemeIds]);
   const moveThemeUp = (index: number) => {
     if (index > 0) {
       const newPriorities = [...themePriorities];
-      [newPriorities[index], newPriorities[index - 1]] = [newPriorities[index - 1], newPriorities[index]];
+      [newPriorities[index], newPriorities[index - 1]] = [
+        newPriorities[index - 1],
+        newPriorities[index],
+      ];
       setThemePriorities(newPriorities);
     }
   };
@@ -83,10 +104,18 @@ export default function FormScreen() {
   const moveThemeDown = (index: number) => {
     if (index < themePriorities.length - 1) {
       const newPriorities = [...themePriorities];
-      [newPriorities[index], newPriorities[index + 1]] = [newPriorities[index + 1], newPriorities[index]];
+      [newPriorities[index], newPriorities[index + 1]] = [
+        newPriorities[index + 1],
+        newPriorities[index],
+      ];
       setThemePriorities(newPriorities);
     }
   };
+
+  if (selectedThemeIds.length === 0) {
+
+    return null;
+  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     console.log("=== FORM SUBMISSION STARTED ===");
@@ -102,12 +131,14 @@ export default function FormScreen() {
       },
       ageGroup: values.ageGroup,
       timeSinceMenopause: values.timeSinceMenopause,
-      extraChoice: values.extraChoice,
       themes: themePriorities.map((id) => {
-        const theme = themes.find(t => t.id === id);
+        const theme = themes.find((t) => t.id === id);
         return { id, title: theme?.title || "" };
       }),
-      themePriorities: themePriorities.map((id, idx) => ({ themeId: id, priority: idx + 1 })),
+      themePriorities: themePriorities.map((id, idx) => ({
+        themeId: id,
+        priority: idx + 1,
+      })),
       consent: values.consent,
       language: language,
     };
@@ -117,19 +148,24 @@ export default function FormScreen() {
     try {
       // Get API key from environment
       const apiKey = import.meta.env.VITE_STATICFORMS_API_KEY;
+      console.log(apiKey);
 
       // Check if API key is loaded
       if (!apiKey) {
-        throw new Error("API key not configured. Please check your .env file and restart the dev server.");
+        throw new Error(
+          "API key not configured. Please check your .env file and restart the dev server."
+        );
       }
 
       console.log("API Key loaded:", apiKey ? "Yes" : "No");
 
       // Format theme priorities for email
-      const prioritizedThemesList = themePriorities.map((id, idx) => {
-        const theme = themes.find(t => t.id === id);
-        return `${idx + 1}. ${theme?.title || id}`;
-      }).join('\n');
+      const prioritizedThemesList = themePriorities
+        .map((id, idx) => {
+          const theme = themes.find((t) => t.id === id);
+          return `${idx + 1}. ${theme?.title || id}`;
+        })
+        .join("\n");
 
       // Submit to StaticForms.xyz
       const response = await fetch("https://api.staticforms.xyz/submit", {
@@ -139,51 +175,66 @@ export default function FormScreen() {
         },
         body: JSON.stringify({
           accessKey: apiKey,
-          subject: `New Post-Menopause Study Submission - ${payload.personal.name || 'Anonymous'}`,
+          subject: `New Post-Menopause Study Submission - ${
+            payload.personal.name || "Anonymous"
+          }`,
           name: payload.personal.name || "Anonymous",
           email: payload.personal.email || "no-email-provided@anonymous.com",
           replyTo: payload.personal.email || undefined,
           message: `
-Age Group: ${payload.ageGroup}
-Time Since Menopause: ${payload.timeSinceMenopause}
-Preferred Contact Method: ${payload.extraChoice}
-Language: ${payload.language}
-Contact Name: ${payload.personal.name || 'Not provided'}
-Contact Email: ${payload.personal.email || 'Not provided'}
+                    Age Group: ${payload.ageGroup}
+                    Time Since Menopause: ${payload.timeSinceMenopause}
+                    Language: ${payload.language}
+                    Contact Name: ${payload.personal.name || "Not provided"}
+                    Contact Email: ${payload.personal.email || "Not provided"}
 
-Selected Themes (Prioritized):
-${prioritizedThemesList}
+                    Selected Themes (Prioritized):
+                    ${prioritizedThemesList}
 
-Consent to Contact: ${payload.consent ? 'Yes' : 'No'}
+                    Consent to Contact: ${payload.consent ? "Yes" : "No"}
 
-Submitted: ${new Date().toLocaleString()}
+                    Submitted: ${new Date().toLocaleString()}
           `.trim(),
           honeypot: "",
         }),
       });
 
+      let result: any = null;
+      try {
+        result = await response.json();
+      } catch {
+        // if API ever returns non-JSON, fall back
+        result = null;
+      }
+
       if (!response.ok) {
-        throw new Error(`Form submission failed: ${response.statusText}`);
+        throw new Error(result?.message || response.statusText);
       }
 
-      const result = await response.json();
+      const okByMessage = /submitted successfully/i.test(result?.message ?? "");
+      const okBySuccessFlag =
+        result?.success === true ||
+        result?.success === "true" ||
+        result?.status === "success";
 
-      if (result.success) {
-        toast({
-          title: t.successTitle,
-          description: t.successDesc,
-          variant: "default",
-        });
-        // Optionally reset form or redirect
-        // form.reset();
-      } else {
-        throw new Error(result.message || "Submission failed");
+      if (!(okByMessage || okBySuccessFlag)) {
+        throw new Error(result?.message || "Submission failed");
       }
+
+      // ✅ show SUCCESS toast
+      toast({
+        title: t.successTitle,
+        description: t.successDesc,
+        variant: "default",
+      });
     } catch (error) {
       console.error("Form submission error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -194,8 +245,8 @@ Submitted: ${new Date().toLocaleString()}
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           onClick={() => setLocation("/")}
           className="mb-8 hover:bg-transparent hover:text-primary pl-0"
           data-testid="btn-back"
@@ -209,34 +260,50 @@ Submitted: ${new Date().toLocaleString()}
           <div className="md:col-span-1 space-y-6">
             <Card className="bg-secondary/30 border-none shadow-none">
               <CardHeader>
-                <CardTitle className="text-xl font-serif text-primary">{t.selectedThemes}</CardTitle>
+                <CardTitle className="text-xl font-serif text-primary">
+                  {t.selectedThemes}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {selectedThemes.map((theme, idx) => (
-                  <div key={theme.id} className="flex flex-col space-y-2 bg-background p-3 rounded-lg shadow-sm">
+                  <div
+                    key={theme.id}
+                    className="flex flex-col space-y-2 bg-background p-3 rounded-lg shadow-sm"
+                  >
                     <div className="flex items-start space-x-3">
-                      <img src={theme.image} alt="" className="w-10 h-10 rounded-md object-cover flex-shrink-0" />
+                      <img
+                        src={theme.image}
+                        alt=""
+                        className="w-10 h-10 rounded-md object-cover flex-shrink-0"
+                      />
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium leading-tight">{idx + 1}. {theme.title}</p>
+                        <p className="text-sm font-medium leading-tight">
+                          {idx + 1}. {theme.title}
+                        </p>
                       </div>
                     </div>
                     <div className="flex gap-2 ml-13">
-                      <button 
+                      <button
                         onClick={() => moveThemeUp(idx)}
                         disabled={idx === 0}
                         className="text-xs px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         ↑
                       </button>
-                      <button 
+                      <button
                         onClick={() => moveThemeDown(idx)}
                         disabled={idx === themePriorities.length - 1}
                         className="text-xs px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         ↓
                       </button>
-                      <button 
-                        onClick={() => toggleTheme(theme.id)}
+                      <button
+                        onClick={() => {
+                          toggleTheme(theme.id);
+                          setThemePriorities((p) =>
+                            p.filter((x) => x !== theme.id)
+                          );
+                        }}
                         className="text-xs text-muted-foreground hover:text-destructive transition-colors underline ml-auto"
                       >
                         {t.remove}
@@ -248,13 +315,13 @@ Submitted: ${new Date().toLocaleString()}
             </Card>
 
             <div className="bg-primary/5 p-6 rounded-xl border border-primary/10">
-              <h2 className="font-serif text-xl font-bold mb-4 text-primary">{t.yourVoiceMatters}</h2>
+              <h2 className="font-serif text-xl font-bold mb-4 text-primary">
+                {t.yourVoiceMatters}
+              </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {t.privacyText}
               </p>
-              <p className="mt-4 text-sm text-muted-foreground">
-                {t.thanks}
-              </p>
+              <p className="mt-4 text-sm text-muted-foreground">{t.thanks}</p>
             </div>
           </div>
 
@@ -263,11 +330,17 @@ Submitted: ${new Date().toLocaleString()}
             <Card className="border-none shadow-lg">
               <CardContent className="p-6 sm:p-8">
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                    
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit, (errs) =>
+                      console.log("INVALID SUBMIT ERRORS:", errs)
+                    )}
+                    className="space-y-8"
+                  >
                     {/* Personal Info */}
                     <div className="space-y-4">
-                      <h3 className="text-lg font-medium border-b pb-2">{t.personalDetailsOptional}</h3>
+                      <h3 className="text-lg font-medium border-b pb-2">
+                        {t.personalDetailsOptional}
+                      </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
@@ -276,7 +349,11 @@ Submitted: ${new Date().toLocaleString()}
                             <FormItem>
                               <FormLabel>{t.name}</FormLabel>
                               <FormControl>
-                                <Input placeholder="Jane Doe" {...field} className="bg-secondary/10 border-transparent focus:border-primary" />
+                                <Input
+                                  placeholder="Jane Doe"
+                                  {...field}
+                                  className="bg-secondary/10 border-transparent focus:border-primary"
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -289,7 +366,12 @@ Submitted: ${new Date().toLocaleString()}
                             <FormItem>
                               <FormLabel>{t.email}</FormLabel>
                               <FormControl>
-                                <Input placeholder="jane@example.com" type="email" {...field} className="bg-secondary/10 border-transparent focus:border-primary" />
+                                <Input
+                                  placeholder="jane@example.com"
+                                  type="email"
+                                  {...field}
+                                  className="bg-secondary/10 border-transparent focus:border-primary"
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -300,7 +382,9 @@ Submitted: ${new Date().toLocaleString()}
 
                     {/* Age Group */}
                     <div className="space-y-4">
-                      <h3 className="text-lg font-medium border-b pb-2">{t.ageGroup}</h3>
+                      <h3 className="text-lg font-medium border-b pb-2">
+                        {t.ageGroup}
+                      </h3>
                       <FormField
                         control={form.control}
                         name="ageGroup"
@@ -309,13 +393,24 @@ Submitted: ${new Date().toLocaleString()}
                             <FormControl>
                               <RadioGroup
                                 onValueChange={field.onChange}
-                                defaultValue={field.value}
+                                value={field.value}
                                 className="grid grid-cols-2 sm:grid-cols-3 gap-3"
                               >
-                                {["below-50", "51-55", "56-60", "61-65", "66-70", "71-75", "75+"].map((age) => (
+                                {[
+                                  "below-50",
+                                  "51-55",
+                                  "56-60",
+                                  "61-65",
+                                  "66-70",
+                                  "71-75",
+                                  "75+",
+                                ].map((age) => (
                                   <FormItem key={age}>
                                     <FormControl>
-                                      <RadioGroupItem value={age} className="peer sr-only" />
+                                      <RadioGroupItem
+                                        value={age}
+                                        className="peer sr-only"
+                                      />
                                     </FormControl>
                                     <FormLabel className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all text-sm">
                                       {age === "below-50" ? "Below 50" : age}
@@ -332,7 +427,9 @@ Submitted: ${new Date().toLocaleString()}
 
                     {/* Time Since Menopause */}
                     <div className="space-y-4">
-                      <h3 className="text-lg font-medium border-b pb-2">{t.timeSinceMenopause}</h3>
+                      <h3 className="text-lg font-medium border-b pb-2">
+                        {t.timeSinceMenopause}
+                      </h3>
                       <FormField
                         control={form.control}
                         name="timeSinceMenopause"
@@ -341,26 +438,32 @@ Submitted: ${new Date().toLocaleString()}
                             <FormControl>
                               <RadioGroup
                                 onValueChange={field.onChange}
-                                defaultValue={field.value}
+                                value={field.value}
                                 className="flex flex-col space-y-3"
                               >
                                 <FormItem className="flex items-center space-x-3 space-y-0">
                                   <FormControl>
                                     <RadioGroupItem value="0-5" />
                                   </FormControl>
-                                  <FormLabel className="font-normal">0-5 years ago</FormLabel>
+                                  <FormLabel className="font-normal">
+                                    0-5 years ago
+                                  </FormLabel>
                                 </FormItem>
                                 <FormItem className="flex items-center space-x-3 space-y-0">
                                   <FormControl>
                                     <RadioGroupItem value="5-10" />
                                   </FormControl>
-                                  <FormLabel className="font-normal">5-10 years ago</FormLabel>
+                                  <FormLabel className="font-normal">
+                                    5-10 years ago
+                                  </FormLabel>
                                 </FormItem>
                                 <FormItem className="flex items-center space-x-3 space-y-0">
                                   <FormControl>
                                     <RadioGroupItem value="10+" />
                                   </FormControl>
-                                  <FormLabel className="font-normal">More than 10 years ago</FormLabel>
+                                  <FormLabel className="font-normal">
+                                    More than 10 years ago
+                                  </FormLabel>
                                 </FormItem>
                               </RadioGroup>
                             </FormControl>
@@ -380,15 +483,17 @@ Submitted: ${new Date().toLocaleString()}
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
-                                onCheckedChange={field.onChange}
+                                onCheckedChange={(checked) =>
+                                  field.onChange(checked === true)
+                                }
                               />
                             </FormControl>
                             <div className="space-y-3 leading-none">
-                              <FormLabel>
-                                {t.consentLabel}
-                              </FormLabel>
+                              <FormLabel>{t.consentLabel}</FormLabel>
                               <div className="space-y-2 text-xs text-muted-foreground">
-                                <p className="font-semibold text-foreground">{t.dataProtectionNotice}</p>
+                                <p className="font-semibold text-foreground">
+                                  {t.dataProtectionNotice}
+                                </p>
                                 <p>{t.dataProtectionText}</p>
                               </div>
                               <FormMessage />
@@ -399,27 +504,26 @@ Submitted: ${new Date().toLocaleString()}
                     </div>
 
                     <div className="flex justify-end pt-4">
-                       <Button 
-                         type="submit" 
-                         size="lg" 
-                         className="w-full sm:w-auto"
-                         disabled={isSubmitting}
-                         data-testid="btn-submit"
-                       >
-                         {isSubmitting ? (
-                           <>
-                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                             {t.submitting}
-                           </>
-                         ) : (
-                           <>
-                             {t.submit}
-                             <Send className="ml-2 h-4 w-4" />
-                           </>
-                         )}
-                       </Button>
+                      <Button
+                        type="submit"
+                        size="lg"
+                        className="w-full sm:w-auto"
+                        disabled={isSubmitting}
+                        data-testid="btn-submit"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {t.submitting}
+                          </>
+                        ) : (
+                          <>
+                            {t.submit}
+                            <Send className="ml-2 h-4 w-4" />
+                          </>
+                        )}
+                      </Button>
                     </div>
-
                   </form>
                 </Form>
               </CardContent>

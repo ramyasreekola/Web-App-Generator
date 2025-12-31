@@ -14,7 +14,6 @@ export interface FormData {
   };
   ageGroup: string;
   timeSinceMenopause: string;
-  extraChoice: string;
   themes: { id: string; title: string }[];
   themePriorities?: { themeId: string; priority: number }[];
   consent: boolean;
