@@ -16,7 +16,7 @@ function Router() {
     <WouterRouter base={base}>
       <Switch>
         <Route path="/" component={ThemeSelection} />
-        <Route path="/form" component={FormScreen} />
+        <Route path="form" component={FormScreen} />
         <Route component={NotFound} />
       </Switch>
     </WouterRouter>

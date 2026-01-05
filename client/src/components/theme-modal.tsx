@@ -31,7 +31,7 @@ export function ThemeModal({ theme, isOpen, onClose }: ThemeModalProps) {
           <img
             src={theme.imageLarge}
             alt=""
-            className="w-full h-full object-contain"
+            className="w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
             <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white shadow-sm">
@@ -51,8 +51,8 @@ export function ThemeModal({ theme, isOpen, onClose }: ThemeModalProps) {
               <p className="text-lg font-medium text-primary">
                 {theme.short}
               </p>
-              <div 
-                className="prose prose-stone text-muted-foreground leading-relaxed"
+              <div
+                className="prose-theme text-muted-foreground leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: theme.full }} // Allowing HTML as per requirements
               />
             </div>

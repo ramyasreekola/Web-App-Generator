@@ -134,3 +134,22 @@
     @apply font-serif;
   }
 }
+
+@layer components {
+  /* Theme modal prose-like styling for HTML content */
+  .prose-theme ul {
+    @apply list-disc pl-6 space-y-2 my-3;
+  }
+
+  .prose-theme li {
+    @apply text-muted-foreground leading-relaxed;
+  }
+
+  .prose-theme p {
+    @apply mb-2;
+  }
+
+  .prose-theme strong {
+    @apply font-semibold text-foreground;
+  }
+}
