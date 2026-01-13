@@ -38,7 +38,7 @@ jobs:
         run: |
           npm run build:gh-pages
         env:
-          VITE_BASE_PATH: '/${{ github.event.repository.name }}/'
+          VITE_BASE_PATH: '/'
           VITE_STATICFORMS_API_KEY: ${{ secrets.VITE_STATICFORMS_API_KEY }}
           VITE_RECIPIENT_EMAIL: ${{ secrets.VITE_RECIPIENT_EMAIL }}
 
